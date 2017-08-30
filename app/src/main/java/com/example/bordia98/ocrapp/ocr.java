@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ import java.io.OutputStream;
 public class ocr extends AppCompatActivity {
 
     private static final int PIC_CROP =2 ;
+    private static final int REQUEST_PICK_PHOTO =1 ;
     Bitmap image;
     private TessBaseAPI mTess;
     String datapath = "";
@@ -39,27 +41,27 @@ public class ocr extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_ocr);
-        ImageView iv = (ImageView)findViewById(R.id.imageView);
-        iv.setDrawingCacheEnabled(true);
+        setContentView(R.layout.activity_ocr); // setting the layout
 
-        image = iv.getDrawingCache();
 
-        String language = "eng";
-        datapath = getFilesDir()+ "/tesseract/";
-        mTess = new TessBaseAPI();
+        String language = "eng";      //assigning language
 
-        checkFile(new File(datapath + "tessdata/"));
+        datapath = getFilesDir()+ "/tesseract/";   // giving the path where tesseract ocr is installed
+        mTess = new TessBaseAPI();                 //creating object of api
 
-        mTess.init(datapath, language);
+        checkFile(new File(datapath + "tessdata/"));   // checking whether the file is there or not
+
+        mTess.init(datapath, language);                 // syntax of using tess
         Button uploadimage= (Button)findViewById(R.id.imageupload);
+        // code to take image from gallery
         uploadimage.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                        startActivityForResult(gallery,1);
-                    }
+
+                            Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent, REQUEST_PICK_PHOTO);
+                        }
                 }
         );
     }
@@ -67,11 +69,18 @@ public class ocr extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==1&& resultCode==RESULT_OK&&data!=null){
-            Uri selectedimage= data.getData();
-             performCrop(selectedimage);
+        if(requestCode==REQUEST_PICK_PHOTO&&resultCode==RESULT_OK&&data!=null){
+            Uri uri = data.getData();
+
+            try {
+                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);// convert uri into bitmap
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            performCrop(uri);   // crop start after assigning bitmap
         }
-        else if(requestCode==PIC_CROP&&resultCode==RESULT_OK&&data!=null){
+       else if(requestCode==PIC_CROP&&resultCode==RESULT_OK&&data!=null){
             Bundle b = data.getExtras();
             Bitmap k = b.getParcelable("data");
             ImageView iv = (ImageView) findViewById(R.id.imageView);
@@ -79,9 +88,9 @@ public class ocr extends AppCompatActivity {
         }
     }
 
-
+// this is done as sometime imageview will not display large images so crop it in order to reduce the size but the ocr will take the actual image only
     public void performCrop(Uri uri){
-
+//using inbuilt crop option
         try {
             Intent cropIntent = new Intent("com.android.camera.action.CROP");
             //indicate image type and Uri
@@ -159,5 +168,6 @@ public class ocr extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 
 }
