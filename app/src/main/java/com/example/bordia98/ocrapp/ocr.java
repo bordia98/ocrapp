@@ -32,7 +32,7 @@ public class ocr extends AppCompatActivity {
 
     private static final int PIC_CROP =2 ;
     private static final int REQUEST_PICK_PHOTO =1 ;
-    Bitmap image;
+    Bitmap selectedimage;
     private TessBaseAPI mTess;
     String datapath = "";
 
@@ -73,7 +73,7 @@ public class ocr extends AppCompatActivity {
             Uri uri = data.getData();
 
             try {
-                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);// convert uri into bitmap
+                selectedimage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);// convert uri into bitmap
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -118,11 +118,11 @@ public class ocr extends AppCompatActivity {
     }
 
     public void processImage(View view){
-        String OCRresult = null;
-        mTess.setImage(image);
-        OCRresult = mTess.getUTF8Text();
+        String ocroutput = null;
+        mTess.setImage(selectedimage);
+        ocroutput = mTess.getUTF8Text();
         TextView OCRTextView = (TextView) findViewById(R.id.OCRTextView);
-        OCRTextView.setText(OCRresult);
+        OCRTextView.setText(ocroutput);
     }
 
     private void checkFile(File dir) {
